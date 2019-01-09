@@ -22,7 +22,7 @@ func TestOldKeyString(t *testing.T) {
 			t.Errorf("Expected %q, got %q", oldWebsafeKey, oldKeyStr)
 		}
 
-		newKey, appID := ConvertForward(oldKey)
+		newKey, appID := ConvertKeyForward(oldKey)
 		if appID != oldKey.AppID() {
 			t.Errorf("Expected %q, got %q", oldKey.AppID(), appID)
 		}
@@ -34,7 +34,7 @@ func TestOldKeyString(t *testing.T) {
 		if err != nil {
 			t.Errorf("Error decoding newKeyStr: %v", err)
 		}
-		oldKey2 := ConvertBackward(newKey2, appID)
+		oldKey2 := ConvertKeyBackward(newKey2, appID)
 		oldKeyStr2 := oldKey2.Encode()
 		if oldKeyStr2 != oldKeyStr {
 			t.Errorf("Expected %q, got %q", oldKeyStr, oldKeyStr2)
