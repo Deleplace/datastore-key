@@ -3,10 +3,10 @@ package datastorekey
 import (
 	"encoding/json"
 
-	"google.golang.org/appengine/datastore"
+	oldds "google.golang.org/appengine/datastore"
 )
 
-func JsonifyKey(key *datastore.Key) (s string) {
+func JsonifyKey(key *oldds.Key) (s string) {
 	b, err := json.MarshalIndent(key, "", "  ")
 	if err != nil {
 		return ""
@@ -14,7 +14,7 @@ func JsonifyKey(key *datastore.Key) (s string) {
 	return string(b)
 }
 
-func RecursiveJson(key *datastore.Key) Response {
+func RecursiveJson(key *oldds.Key) Response {
 	var parentJson Response
 	if key.Parent() != nil {
 		parentJson = RecursiveJson(key.Parent())
