@@ -105,7 +105,18 @@
 
 
 	<div class="col-md-5">
-		<form action="/decode" class="form-decode-old">
+        <form action="/decode" class="form-decode-old">
+            <div class="format-explanation">
+                <p>
+                    This format works well with GAE-specific client libs:
+                </p>
+                <table>
+                    <tr>
+                        <td>Go</td>
+                        <td><a href="google.golang.org/appengine/datastore">google.golang.org/appengine/datastore</a></td>
+                    </tr>
+                </table>
+            </div>
 			<fieldset>
 				<div class="form-group" >
 					<label for="keystring">Old Key encoded string - contains App Id</label>
@@ -119,6 +130,17 @@
         </form>
 
 		<form action="/decode" class="form-decode-new">
+			<div class="format-explanation">
+				<p>
+					This format works well with client libs:
+				</p>
+				<table>
+					<tr>
+						<td>Go</td>
+						<td><a href="https://godoc.org/cloud.google.com/go/datastore">cloud.google.com/go/datastore</a></td>
+					</tr>
+				</table>
+			</div>
 			<fieldset>
 				<div class="form-group" >
 					<label for="keystring">New Key encoded string - no App Id</label>

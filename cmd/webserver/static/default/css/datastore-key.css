@@ -11,6 +11,23 @@ h1 {
 	margin-bottom: 30px;
 }
 
+.form-decode-old, .form-decode-new {
+    margin-bottom: 4rem;
+}
+
+.format-explanation {
+    color: #666;
+    margin-bottom: 0.8rem;
+}
+
+.format-explanation td {
+    border: 1px solid #DDD;
+}
+
+.format-explanation td {
+    padding: 0.5rem;
+}
+
 fieldset{
 	border-width: 1px;
 	border-style: solid;
