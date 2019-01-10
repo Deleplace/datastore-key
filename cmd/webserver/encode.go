@@ -18,7 +18,6 @@ func ajaxEncode(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	c := r.Context()
-	var err error
 
 	kind := trimmedFormValue(r, "kind")
 	stringID := trimmedFormValue(r, "stringid")
@@ -47,25 +46,12 @@ func ajaxEncode(w http.ResponseWriter, r *http.Request) {
 
 	if kind2 != "" {
 		if kind3 != "" {
-			grandparent, err = datastorekey.CreateKey(appID, namespace, kind3, stringID3, intID64(intIDstr3), nil)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
-				return
-			}
+			grandparent = datastorekey.CreateKey(appID, namespace, kind3, stringID3, intID64(intIDstr3), nil)
 		}
-		parent, err = datastorekey.CreateKey(appID, namespace, kind2, stringID2, intID64(intIDstr2), grandparent)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
+		parent = datastorekey.CreateKey(appID, namespace, kind2, stringID2, intID64(intIDstr2), grandparent)
 	}
 
-	key, err = datastorekey.CreateKey(appID, namespace, kind, stringID, intID64(intIDstr), parent)
-	if err != nil {
-		logf(c, "ERROR", "Failed: %v\n", err.Error())
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
+	key = datastorekey.CreateKey(appID, namespace, kind, stringID, intID64(intIDstr), parent)
 	//fmt.Fprint(w, keyString)
 	w.Header().Set("Content-Type", "application/json")
 	keyString := key.Encode()
