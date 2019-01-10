@@ -1,0 +1,197 @@
+{{define "index"}}
+<html>
+<head>
+	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+	<link rel="stylesheet" href="/static/css/bs-docs.min.css">
+	<link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.0/themes/smoothness/jquery-ui.css">
+	<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css">
+	<link rel="stylesheet" href="/static/css/datastore-key.css">
+	<link rel="SHORTCUT ICON" href="/static/img/favicon_keyring.png" />
+	<link rel="search" type="application/opensearchdescription+xml" title="Datastore Key" href="/static/xml/opensearch-this.xml">
+</head>
+<body>
+<div class="container">
+<h1>Google Datastore key conversion</h1>
+<div class="row">
+
+	<div class="col-md-5">
+		<form action="/encode" role="form" class="form-encode">
+			<fieldset>
+			 	<div class="form-group">
+					<label for="appid">App Id</label>
+					<div class="input-group">
+						<input type="text" class="form-control" placeholder="" name="appid" value="{{.appid}}"/>
+						<span class="input-group-addon"><a href="javascript:void(0);" id="appspot-link" target="_blank" title="Open app"><i class="glyphicon glyphicon-globe"></i></a></span>
+					</div>
+					<p class="help-block"><i class="glyphicon glyphicon-warning-sign"></i> you may need a fully qualified app id, e.g. s~datastore-key</p>
+				</div>
+			 	<div class="form-group">
+					<label for="namespace">Namespace</label>
+					<input type="text" class="form-control" placeholder="" name="namespace" value="{{.namespace}}"/>
+				</div>
+			 	<div class="form-group">
+					<label for="kind">Kind</label>
+					<input type="text" class="form-control" placeholder="e.g. Contact" name="kind" value="{{.kind}}"/>
+				</div>
+			 	<div class="form-group">
+					<label for="intid">Int Id</label>
+					<input type="text" class="form-control" placeholder="" name="intid" value="{{.intid}}"/>
+					<p class="help-block">0 is equivalent to empty Int Id</p>
+				</div>
+			 	<div class="form-group">
+					<label for="stringid">String Id (Name)</label>
+					<input type="text" class="form-control" placeholder="" name="stringid" value="{{.stringid}}"/>
+				</div>
+			 	<div class="form-group">
+					<a id="set-parent" class="btn btn-primary btn-xs" href="javascript:void(0);">{{if .kind2}}Remove parent{{else}}Set parent{{end}}</a>
+				</div>
+				<div class="row key-parent {{if not .kind2}}hidden{{end}}">
+					<div class="col-md-2">
+						<label>Parent:</label>
+					</div>
+					<div class="col-md-10">
+						<fieldset>
+						 	<div class="form-group">
+								<label for="kind">Kind</label>
+								<input type="text" class="form-control" name="kind2" value="{{.kind2}}"/>
+							</div>
+						 	<div class="form-group">
+								<label for="intid">Int Id</label>
+								<input type="text" class="form-control" placeholder="" name="intid2" value="{{.intid2}}"/>
+							</div>
+						 	<div class="form-group">
+								<label for="stringid">String Id (Name)</label>
+								<input type="text" class="form-control" placeholder="" name="stringid2" value="{{.stringid2}}"/>
+							</div>
+			 				<div class="form-group">
+								<a id="set-grand-parent" class="btn btn-primary btn-xs" href="javascript:void(0);">{{if .kind3}}Remove grandparent{{else}}Set grandparent{{end}}</a>
+							</div>
+							<div class="row key-grand-parent {{if not .kind3}}hidden{{end}}">
+								<div class="col-md-3">
+									<label>Grand-parent:</label>
+								</div>
+								<div class="col-md-9">
+									<fieldset>
+									 	<div class="form-group">
+											<label for="kind">Kind</label>
+											<input type="text" class="form-control" name="kind3" value="{{.kind3}}"/>
+										</div>
+									 	<div class="form-group">
+											<label for="intid">Int Id</label>
+											<input type="text" class="form-control" placeholder="" name="intid3" value="{{.intid3}}"/>
+										</div>
+									 	<div class="form-group">
+											<label for="stringid">String Id (Name)</label>
+											<input type="text" class="form-control" placeholder="" name="stringid3" value="{{.stringid3}}"/>
+										</div>
+									</fieldset>
+								</div>
+							</div>
+						</fieldset>
+					</div>
+				</div>
+			</fieldset>
+			<div class="form-group text-right" >
+				<!-- <input type="submit" value="Encode" /> -->
+				<button type="button" id="ajax-encode" class="btn btn-success btn-lg" data-loading-text="Encode <i class='fa fa-spinner fa-spin'></i>">Encode &gt;&gt;</button>
+			</div>
+		</form>
+	</div>
+
+
+	<div class="col-md-2">
+	</div>
+
+
+	<div class="col-md-5">
+		<form action="/decode" class="form-decode">
+			<fieldset>
+				<div class="form-group" >
+					<label for="keystring">Key encoded string</label>
+					<textarea class="form-control" rows="4" placeholder="Paste encoded key string" name="keystring">{{.keystring}}</textarea>
+				</div>
+			</fieldset>
+			<div class="form-group" >
+				<!-- <input type="submit" value="Decode" /> -->
+				<button type="button" id="ajax-decode" class="btn btn-success btn-lg" data-loading-text="<i class='fa fa-spinner fa-spin'></i> Decode">&lt;&lt; Decode</button>
+			</div>
+		</form>
+
+        {{/* Probably mostly outdated as of 2019-01
+		<div class="more bs-callout bs-callout-info">
+            <h4 id="btn-more">More</h4>
+            <div id="more-content" class="collapse">
+                <ul>
+                    <li><a href="javascript:void(0);" id="open-in-datastore-viewer" class="btn btn-default"><img src="/static/img/favicon_appengine.png"/> Open this entity in the Datastore Viewer</a></li>
+                    <li><button id="link-for-bookmark" class="btn btn-default"><i class='fa fa-bookmark'></i> Bookmarkable URL with current values</button></li>
+                    <li><a href="#" id="link-engine-this" class="btn btn-success"><img src="/static/img/icon_keyring_round.png" /> Add a search engine to this page</a></li>
+                    <li><a href="#" id="link-engine-ds-viewer" class="btn btn-success"><img src="/static/img/icon_appengine_round.png" /> Add a search engine to the Datastore Viewer</a></li>
+                </ul>
+                <h4>Command line executable</h4>
+                <table class="table">
+                    <tr>
+                        <th>Linux 64</th>
+                        <td><a href="/static/cmd/linux_amd64/datastoreKey">datastoreKey</a></td>
+                    </tr>
+                    <tr>
+                        <th>Linux 32</th>
+                        <td><a href="/static/cmd/linux_i686/datastoreKey">datastoreKey</a></td>
+                    </tr>
+                    <tr>
+                        <th>OSX 64</th>
+                        <td><a href="/static/cmd/darwin_amd64/datastoreKey">datastoreKey</a></td>
+                    </tr>
+                    <tr>
+                        <th>Win 64</th>
+                        <td><a href="/static/cmd/windows_amd64/datastoreKey.exe">datastoreKey.exe</a></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        */}}
+
+		<div class="about bs-callout bs-callout-info">
+			<h4 id="btn-about">About</h4>
+			<div id="about-content" class="collapse">
+				<ul>
+					<li><a href="https://github.com/Deleplace/datastore-key" class="btn btn-default"><i class="fa fa-github fa-lg"></i>&nbsp;&nbsp; Source</a></li>
+					<li>Made with
+						<ul class="inline">
+							<li><a href="https://golang.org/" class="btn btn-primary"><img src="/static/img/icon_golang_round.png" /> Go</a></li>
+							<li><a href="https://cloud.google.com/appengine/docs/" class="btn btn-primary"><img src="/static/img/icon_appengine_round.png" /> App Engine</a></li>
+							<li><a href="https://getbootstrap.com/" class="btn btn-primary"><img src="/static/img/favicon_bootstrap.ico" width="16px" /> Bootstrap</a></li>
+							<li><a href="https://jquery.com/" class="btn btn-primary"><img src="/static/img/icon_jquery_round.png" /> jQuery</a></li>
+							<li><a href="https://fontawesome.com/" class="btn btn-primary"><img src="/static/img/favicon_font-awesome.ico" /> Font Awesome</a></li>
+						</ul>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+
+</div>
+</div>
+
+<div class="footer">
+	<div class="container">
+		<p class="text-muted">This page is not an official Google service. No guarantee.</p>
+		<p class="text-muted"><a href="mailto:deleplace2015@gmail.com">Contact.</a></p>
+	</div>
+</div>
+
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="//code.jquery.com/ui/1.11.0/jquery-ui.js"></script>
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+<script src="/static/js/datastore-key.js"></script>
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-40444778-3', 'auto');
+  ga('send', 'pageview');
+</script>
+</body>
+</html>
+{{end}}
