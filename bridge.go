@@ -52,7 +52,7 @@ func ConvertKeyBackward(new_ *newds.Key, appID string) (old *oldds.Key) {
 		return nil
 	}
 	oldParent := ConvertKeyBackward(new_.Parent, appID)
-	old = CreateKey(appID, new_.Namespace, new_.Kind, new_.Name, new_.ID, oldParent)
+	old = CreateOldKey(appID, new_.Namespace, new_.Kind, new_.Name, new_.ID, oldParent)
 	return old
 }
 

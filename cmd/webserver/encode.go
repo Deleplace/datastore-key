@@ -6,8 +6,9 @@ import (
 	"strconv"
 	"strings"
 
+	newds "cloud.google.com/go/datastore"
 	datastorekey "github.com/Deleplace/datastore-key"
-	"google.golang.org/appengine/datastore"
+	oldds "google.golang.org/appengine/datastore"
 )
 
 func init() {
@@ -35,6 +36,10 @@ func ajaxEncode(w http.ResponseWriter, r *http.Request) {
 	stringID3 := trimmedFormValue(r, "stringid3")
 	intIDstr3 := trimmedFormValue(r, "intid3")
 
+	// Old keys contain an AppID, new keys don't.
+	// Producing an old key requires an AppID.
+	hasAppID := appID != ""
+
 	logf(c, "INFO", "Encoding %v\n", []string{
 		appID, namespace,
 		kind, stringID, intIDstr,
@@ -42,23 +47,36 @@ func ajaxEncode(w http.ResponseWriter, r *http.Request) {
 		kind3, stringID3, intIDstr3,
 	})
 
-	var key, parent, grandparent *datastore.Key
+	var oldKey, oldParent, oldGrandparent *oldds.Key
+	oldKeyString := ""
 
-	if kind2 != "" {
-		if kind3 != "" {
-			grandparent = datastorekey.CreateKey(appID, namespace, kind3, stringID3, intID64(intIDstr3), nil)
+	if hasAppID {
+		if kind2 != "" {
+			if kind3 != "" {
+				oldGrandparent = datastorekey.CreateOldKey(appID, namespace, kind3, stringID3, intID64(intIDstr3), nil)
+			}
+			oldParent = datastorekey.CreateOldKey(appID, namespace, kind2, stringID2, intID64(intIDstr2), oldGrandparent)
 		}
-		parent = datastorekey.CreateKey(appID, namespace, kind2, stringID2, intID64(intIDstr2), grandparent)
+		oldKey = datastorekey.CreateOldKey(appID, namespace, kind, stringID, intID64(intIDstr), oldParent)
+		oldKeyString = oldKey.Encode()
 	}
 
-	key = datastorekey.CreateKey(appID, namespace, kind, stringID, intID64(intIDstr), parent)
-	//fmt.Fprint(w, keyString)
+	var newKey, newParent, newGrandparent *newds.Key
+	if kind2 != "" {
+		if kind3 != "" {
+			newGrandparent = datastorekey.CreateNewKey(namespace, kind3, stringID3, intID64(intIDstr3), nil)
+		}
+		newParent = datastorekey.CreateNewKey(namespace, kind2, stringID2, intID64(intIDstr2), newGrandparent)
+	}
+	newKey = datastorekey.CreateNewKey(namespace, kind, stringID, intID64(intIDstr), newParent)
+	newKeyString := newKey.Encode()
+
 	w.Header().Set("Content-Type", "application/json")
-	keyString := key.Encode()
 	fmt.Fprint(w, Response{
-		"keystring": keyString,
+		"oldKeyString": oldKeyString,
+		"newKeyString": newKeyString,
 	})
-	logf(c, "INFO", "Encoded %v\n", keyString)
+	logf(c, "INFO", "Encoded %v\n", oldKeyString)
 }
 
 func intID64(intIDstr string) int64 {

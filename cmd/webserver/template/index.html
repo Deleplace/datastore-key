@@ -11,7 +11,7 @@
 </head>
 <body>
 <div class="container">
-<h1>Google Datastore key conversion</h1>
+<h1>Google Cloud Datastore key conversion</h1>
 <div class="row">
 
 	<div class="col-md-5">
@@ -23,7 +23,8 @@
 						<input type="text" class="form-control" placeholder="" name="appid" value="{{.appid}}"/>
 						<span class="input-group-addon"><a href="javascript:void(0);" id="appspot-link" target="_blank" title="Open app"><i class="glyphicon glyphicon-globe"></i></a></span>
 					</div>
-					<p class="help-block"><i class="glyphicon glyphicon-warning-sign"></i> you may need a fully qualified app id, e.g. s~datastore-key</p>
+					<p class="help-block"><i class="glyphicon glyphicon-warning-sign"></i> old keys need a fully qualified app id, e.g. s~datastore-key</p>
+					<p class="help-block"><i class="glyphicon glyphicon-warning-sign"></i> new keys don't contain an App Id</p>
 				</div>
 			 	<div class="form-group">
 					<label for="namespace">Namespace</label>
@@ -104,16 +105,29 @@
 
 
 	<div class="col-md-5">
-		<form action="/decode" class="form-decode">
+		<form action="/decode" class="form-decode-old">
 			<fieldset>
 				<div class="form-group" >
-					<label for="keystring">Key encoded string</label>
-					<textarea class="form-control" rows="4" placeholder="Paste encoded key string" name="keystring">{{.keystring}}</textarea>
+					<label for="keystring">Old Key encoded string - contains App Id</label>
+					<textarea class="form-control" rows="4" placeholder="Paste encoded key string" name="oldkeystring">{{.oldkeystring}}</textarea>
 				</div>
 			</fieldset>
 			<div class="form-group" >
 				<!-- <input type="submit" value="Decode" /> -->
-				<button type="button" id="ajax-decode" class="btn btn-success btn-lg" data-loading-text="<i class='fa fa-spinner fa-spin'></i> Decode">&lt;&lt; Decode</button>
+				<button type="button" id="ajax-decode-old" class="btn btn-success btn-lg" data-loading-text="<i class='fa fa-spinner fa-spin'></i> Decode">&lt;&lt; Decode</button>
+			</div>
+        </form>
+
+		<form action="/decode" class="form-decode-new">
+			<fieldset>
+				<div class="form-group" >
+					<label for="keystring">New Key encoded string - no App Id</label>
+					<textarea class="form-control" rows="4" placeholder="Paste encoded key string" name="newkeystring">{{.newkeystring}}</textarea>
+				</div>
+			</fieldset>
+			<div class="form-group" >
+				<!-- <input type="submit" value="Decode" /> -->
+				<button type="button" id="ajax-decode-new" class="btn btn-success btn-lg" data-loading-text="<i class='fa fa-spinner fa-spin'></i> Decode">&lt;&lt; Decode</button>
 			</div>
 		</form>
 

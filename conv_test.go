@@ -11,6 +11,8 @@ func TestOldKeyString(t *testing.T) {
 	// Valid keys
 	for _, oldWebsafeKey := range []string{
 		"ahRzfnByb2dyYW1taW5nLWlkaW9tc3IMCxIFSWRpb20YmgEM",
+		"ahVzfndoYXRhd29uZGVyZnVsd29ybGRyHAsSAmszGAMMCxICazIiBHN0cjIMCxICazEYAQw",
+		"ahVzfndoYXRhd29uZGVyZnVsd29ybGRyIAsSAmszIgRzdHIzDAsSAmsyGAIMCxICazEiBHN0cjEMogECbnM",
 	} {
 		oldKey, err := oldds.DecodeKey(oldWebsafeKey)
 		if err != nil {
@@ -38,6 +40,24 @@ func TestOldKeyString(t *testing.T) {
 		oldKeyStr2 := oldKey2.Encode()
 		if oldKeyStr2 != oldKeyStr {
 			t.Errorf("Expected %q, got %q", oldKeyStr, oldKeyStr2)
+		}
+	}
+}
+
+func TestNewKeyString(t *testing.T) {
+	// Valid keys
+	for _, newWebsafeKey := range []string{
+		"CgQiAm5zEgoKAmszGgRzdHIzEgYKAmsyEAISCgoCazEaBHN0cjE",
+		"EgoKAmsyGgRzdHIyEgYKAmsxEAE",
+	} {
+		newKey, err := newds.DecodeKey(newWebsafeKey)
+		if err != nil {
+			t.Errorf("Could not decode %q: %v", newWebsafeKey, err)
+			continue
+		}
+		newKeyStr := newKey.Encode()
+		if newKeyStr != newWebsafeKey {
+			t.Errorf("Expected %q, got %q", newWebsafeKey, newKeyStr)
 		}
 	}
 }

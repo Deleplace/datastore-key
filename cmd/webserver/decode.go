@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"net/http"
 
+	newds "cloud.google.com/go/datastore"
 	datastorekey "github.com/Deleplace/datastore-key"
-	"google.golang.org/appengine/datastore"
+	oldds "google.golang.org/appengine/datastore"
 )
 
 func init() {
@@ -16,18 +17,45 @@ func init() {
 func ajaxDecode(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
-	keyString := trimmedFormValue(r, "keystring")
-	c := r.Context()
-	logf(c, "INFO", "Decoding %v\n", keyString)
+	oldKeyString := trimmedFormValue(r, "oldkeystring")
+	newKeyString := trimmedFormValue(r, "newkeystring")
 
-	key, err := datastore.DecodeKey(keyString)
-	if err != nil {
-		logf(c, "ERROR", "Failed: %v\n", err.Error())
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	if (oldKeyString == "") == (newKeyString == "") {
+		http.Error(w, "Please provide either oldkeystring or newkeystring to decode", http.StatusBadRequest)
 		return
 	}
 
-	response := datastorekey.RecursiveJson(key).String()
+	c := r.Context()
+	logf(c, "INFO", "Decoding %v\n", oldKeyString)
+	var response string
+
+	if oldKeyString != "" {
+		oldKey, err := oldds.DecodeKey(oldKeyString)
+		if err != nil {
+			logf(c, "ERROR", "Failed: %v\n", err.Error())
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		responseMap := datastorekey.RecursiveJsonOld(oldKey)
+
+		newKeyString, _, err = datastorekey.ConvertKeyStringForward(oldKeyString)
+		if err == nil {
+			responseMap["newkeystring"] = newKeyString
+		} else {
+			logf(c, "ERROR", "Failed to convert old key to new key: %v\n", err.Error())
+		}
+
+		response = responseMap.String()
+	} else if newKeyString != "" {
+		newKey, err := newds.DecodeKey(newKeyString)
+		if err != nil {
+			logf(c, "ERROR", "Failed: %v\n", err.Error())
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		response = datastorekey.RecursiveJsonNew(newKey).String()
+	}
+
 	logf(c, "INFO", "%v\n", response)
 	w.Header().Set("Content-Type", "application/json")
 	fmt.Fprint(w, response)

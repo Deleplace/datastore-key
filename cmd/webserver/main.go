@@ -7,7 +7,9 @@ import (
 	"net/http"
 	"os"
 
-	"google.golang.org/appengine/datastore"
+	newds "cloud.google.com/go/datastore"
+	datastorekey "github.com/Deleplace/datastore-key"
+	oldds "google.golang.org/appengine/datastore"
 )
 
 func main() {
@@ -38,42 +40,59 @@ func index(w http.ResponseWriter, r *http.Request) {
 	c := r.Context()
 	data := extractGetParameters(r)
 
-	keyString := data["keystring"].(string)
-	if keyString != "" {
-		logf(c, "INFO", "Decoding %v\n", keyString)
-		err := autodecode(keyString, data)
+	if oldKeyString := data["oldkeystring"].(string); oldKeyString != "" {
+		logf(c, "INFO", "Decoding oldkeystring %q\n", oldKeyString)
+		err := autodecodeOld(oldKeyString, data)
 		if err == nil {
-			logf(c, "INFO", "Decoded %v\n", data)
+			logf(c, "INFO", "Decoded %q\n", data)
+		} else {
+			logf(c, "ERROR", "Failed: %v\n", err.Error())
+			// If autodecode failed, render the page with key not decoded
+		}
+
+		newKeyString, _, err := datastorekey.ConvertKeyStringForward(oldKeyString)
+		if err == nil {
+			data["newkeystring"] = newKeyString
+		} else {
+			logf(c, "ERROR", "Failed to convert old key to new key: %v\n", err.Error())
+		}
+	} else if newKeyString := data["newkeystring"].(string); newKeyString != "" {
+		logf(c, "INFO", "Decoding newkeystring %q\n", newKeyString)
+		err := autodecodeNew(newKeyString, data)
+		if err == nil {
+			logf(c, "INFO", "Decoded %q\n", data)
 		} else {
 			logf(c, "ERROR", "Failed: %v\n", err.Error())
 			// If autodecode failed, render the page with key not decoded
 		}
 	}
+
 	templates.ExecuteTemplate(w, "index", data)
 }
 
 func extractGetParameters(r *http.Request) map[string]interface{} {
 	data := map[string]interface{}{
-		"kind":      trimmedFormValue(r, "kind"),
-		"stringid":  trimmedFormValue(r, "stringid"),
-		"intid":     trimmedFormValue(r, "intid"),
-		"appid":     trimmedFormValue(r, "appid"),
-		"namespace": trimmedFormValue(r, "namespace"),
-		"keystring": trimmedFormValue(r, "keystring"),
-		"kind2":     trimmedFormValue(r, "kind2"),
-		"stringid2": trimmedFormValue(r, "stringid2"),
-		"intid2":    trimmedFormValue(r, "intid2"),
-		"kind3":     trimmedFormValue(r, "kind3"),
-		"stringid3": trimmedFormValue(r, "stringid3"),
-		"intid3":    trimmedFormValue(r, "intid3"),
+		"kind":         trimmedFormValue(r, "kind"),
+		"stringid":     trimmedFormValue(r, "stringid"),
+		"intid":        trimmedFormValue(r, "intid"),
+		"appid":        trimmedFormValue(r, "appid"),
+		"namespace":    trimmedFormValue(r, "namespace"),
+		"kind2":        trimmedFormValue(r, "kind2"),
+		"stringid2":    trimmedFormValue(r, "stringid2"),
+		"intid2":       trimmedFormValue(r, "intid2"),
+		"kind3":        trimmedFormValue(r, "kind3"),
+		"stringid3":    trimmedFormValue(r, "stringid3"),
+		"intid3":       trimmedFormValue(r, "intid3"),
+		"oldkeystring": trimmedFormValue(r, "oldkeystring"),
+		"newkeystring": trimmedFormValue(r, "newkeystring"),
 	}
 	return data
 }
 
-// IF keystring was given as GET parameter
+// IF oldkeystring was given as GET parameter
 // THEN it is nice that all decoded values are directly served in the html
-func autodecode(keystring string, data map[string]interface{}) error {
-	if keystring == "" {
+func autodecodeOld(oldkeystring string, data map[string]interface{}) error {
+	if oldkeystring == "" {
 		// Nothing to decode
 		return nil
 	}
@@ -82,15 +101,15 @@ func autodecode(keystring string, data map[string]interface{}) error {
 		return nil
 	}
 
-	key, err := datastore.DecodeKey(keystring)
+	key, err := oldds.DecodeKey(oldkeystring)
 	if err != nil {
 		return err
 	}
-	fillFields(key, data)
+	fillFieldsOld(key, data)
 	return nil
 }
 
-func fillFields(key *datastore.Key, data map[string]interface{}) {
+func fillFieldsOld(key *oldds.Key, data map[string]interface{}) {
 	data["kind"] = key.Kind()
 	data["stringid"] = key.StringID()
 	data["intid"] = key.IntID()
@@ -104,6 +123,43 @@ func fillFields(key *datastore.Key, data map[string]interface{}) {
 			data["kind3"] = key.Parent().Parent().Kind()
 			data["stringid3"] = key.Parent().Parent().StringID()
 			data["intid3"] = key.Parent().Parent().IntID()
+		}
+	}
+}
+
+// IF newkeystring was given as GET parameter
+// THEN it is nice that all decoded values are directly served in the html
+func autodecodeNew(newkeystring string, data map[string]interface{}) error {
+	if newkeystring == "" {
+		// Nothing to decode
+		return nil
+	}
+	if data["appid"] != "" || data["kind"] != "" || data["intid"] != "" || data["stringid"] != "" {
+		// Don't overwrite user-provided values
+		return nil
+	}
+
+	key, err := newds.DecodeKey(newkeystring)
+	if err != nil {
+		return err
+	}
+	fillFieldsNew(key, data)
+	return nil
+}
+
+func fillFieldsNew(key *newds.Key, data map[string]interface{}) {
+	data["kind"] = key.Kind
+	data["stringid"] = key.Name
+	data["intid"] = key.ID
+	data["namespace"] = key.Namespace
+	if key.Parent != nil {
+		data["kind2"] = key.Parent.Kind
+		data["stringid2"] = key.Parent.Name
+		data["intid2"] = key.Parent.ID
+		if key.Parent.Parent != nil {
+			data["kind3"] = key.Parent.Parent.Kind
+			data["stringid3"] = key.Parent.Parent.Name
+			data["intid3"] = key.Parent.Parent.ID
 		}
 	}
 }

@@ -188,7 +188,7 @@ func encode(kind, appID, namespace, stringID, intIDStr, parentKeyString string) 
 			return nil, err
 		}
 	}
-	return datastorekey.CreateKey(appID, namespace, kind, stringID, intID64(intIDStr), parent)
+	return datastorekey.CreateOldKey(appID, namespace, kind, stringID, intID64(intIDStr), parent)
 }
 
 /*
@@ -207,7 +207,7 @@ func translate(sourceKey *datastore.Key, translateAppId bool, targetAppId string
 			return nil, err
 		}
 	}
-	return datastorekey.CreateKey(targetAppId, targetNamespace, sourceKey.Kind(), sourceKey.StringID(), sourceKey.IntID(), translatedParent)
+	return datastorekey.CreateOldKey(targetAppId, targetNamespace, sourceKey.Kind(), sourceKey.StringID(), sourceKey.IntID(), translatedParent)
 }
 
 func translateKeyString(sourceKeyString string, translateAppId bool, targetAppId string, translateNamespace bool, targetNamespace string) (string, error) {

@@ -3,6 +3,7 @@ package datastorekey
 import (
 	"encoding/json"
 
+	newds "cloud.google.com/go/datastore"
 	oldds "google.golang.org/appengine/datastore"
 )
 
@@ -14,10 +15,10 @@ func JsonifyKey(key *oldds.Key) (s string) {
 	return string(b)
 }
 
-func RecursiveJson(key *oldds.Key) Response {
+func RecursiveJsonOld(key *oldds.Key) Response {
 	var parentJson Response
 	if key.Parent() != nil {
-		parentJson = RecursiveJson(key.Parent())
+		parentJson = RecursiveJsonOld(key.Parent())
 	}
 	return Response{
 		"stringID":  key.StringID(),
@@ -25,6 +26,20 @@ func RecursiveJson(key *oldds.Key) Response {
 		"kind":      key.Kind(),
 		"appID":     key.AppID(),
 		"namespace": key.Namespace(),
+		"parent":    parentJson,
+	}
+}
+
+func RecursiveJsonNew(key *newds.Key) Response {
+	var parentJson Response
+	if key.Parent != nil {
+		parentJson = RecursiveJsonNew(key.Parent)
+	}
+	return Response{
+		"stringID":  key.Name,
+		"intID":     key.ID,
+		"kind":      key.Kind,
+		"namespace": key.Namespace,
 		"parent":    parentJson,
 	}
 }
