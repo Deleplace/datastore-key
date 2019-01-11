@@ -1,6 +1,12 @@
 runtime: go111
 
 handlers:
+- url: /static
+  static_dir: cmd/webserver/static/default
+  expiration: "120s"
 - url: /.*
   script: auto
   secure: always
+
+env_variables:
+  IS_GAE: "1"

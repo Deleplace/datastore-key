@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	newds "cloud.google.com/go/datastore"
 	datastorekey "github.com/Deleplace/datastore-key"
@@ -26,14 +27,18 @@ func main() {
 var templates *template.Template
 
 func init() {
-	var err error
-	templates, err = template.New("datastore-keys").ParseGlob("template/*.html")
-	check(err)
+	templateFolder := "template"
+	if os.Getenv("IS_GAE") == "" {
+		// Local dev, or other cloud
+		static := http.StripPrefix("/static/", http.FileServer(http.Dir("static/default")))
+		http.Handle("/static/", static)
+	} else {
+		// AppEngine prod env
+		templateFolder = filepath.Join("cmd", "webserver", templateFolder)
+	}
 
+	templates = template.Must(template.New("datastore-keys").ParseFiles(filepath.Join(templateFolder, "index.html")))
 	http.HandleFunc("/", index)
-
-	static := http.StripPrefix("/static/", http.FileServer(http.Dir("static/default")))
-	http.Handle("/static/", static)
 }
 
 func index(w http.ResponseWriter, r *http.Request) {
