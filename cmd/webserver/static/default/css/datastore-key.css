@@ -18,14 +18,24 @@ h1 {
 .format-explanation {
     color: #666;
     margin-bottom: 0.8rem;
+    padding-left: 3rem;
 }
 
 .format-explanation td {
-    border: 1px solid #DDD;
+    border: 1px solid #EEE;
+    color: #888;
+}
+
+.format-explanation td.lang {
+    font-weight: bold;
 }
 
 .format-explanation td {
     padding: 0.5rem;
+}
+
+.format-explanation td > a {
+    color: rgb(120, 120, 235);
 }
 
 fieldset{
